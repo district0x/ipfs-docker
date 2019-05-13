@@ -1,0 +1,56 @@
+upstream failover_api_servers {
+  server ipfs-daemon:5001;
+  server ipfs.io backup;
+}
+
+upstream failover_gateways {
+  server ipfs-daemon:8080;
+  server ipfs.io backup;
+}
+
+server {
+  listen 80 default_server;
+
+  location /api {
+    rewrite ^/api(.*)$ $1 break;
+    try_files $uri @api;
+  }
+
+  location @api {
+    proxy_pass              http://failover_api_servers;
+    proxy_redirect          off;
+    proxy_next_upstream     timeout http_504;
+    proxy_connect_timeout   5s;
+    proxy_read_timeout      10s;
+    proxy_set_header        Host            $host;
+    proxy_set_header        X-Real-IP       $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_intercept_errors on;
+  }
+
+  location /gateway {
+    rewrite ^/gateway(.*)$ $1 break;
+    try_files $uri @gateway;
+  }
+
+  location @gateway {
+    proxy_pass              http://failover_gateways;
+    proxy_redirect          off;
+    proxy_next_upstream     timeout http_504;
+    proxy_connect_timeout   5s;
+    proxy_read_timeout      10s;
+    proxy_set_header        Host            $host;
+    proxy_set_header        X-Real-IP       $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_intercept_errors on;
+  }
+
+  # location = /X0X.html {
+  #   root /usr/share/nginx/html/;
+  #   internal;
+  # }
+
+  # # redirect server error pages to the static error page
+  # error_page 400 401 402 403 404 405 406 407 408 409 410 411 412 413 414 415 416 417 418 420 422 423 424 426 428 429 431 444 449 450 451 500 501 502 503 504 505 506 507 508 509 510 511 /X0X.html;
+
+}
