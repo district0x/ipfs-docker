@@ -38,10 +38,9 @@ function login {
   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 }
 
-
 #--- EXECUTE
 
-#login
+login
 
 images=(
   district0x/ipfs-daemon
@@ -51,7 +50,7 @@ images=(
 for i in "${images[@]}"; do
   (
     build $i
-#    push $i
+    push $i
   )
 
 done # END: i loop
