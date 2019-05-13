@@ -8,6 +8,14 @@ upstream failover_gateways {
   server ipfs.io backup;
 }
 
+map $sent_http_content_type $expires {
+    default                    off;
+    text/html                  "max-age=864000"; # 10 days
+    text/css                   "max-age=864000";
+    application/javascript     "max-age=864000";
+    ~image/                    max;
+}
+
 server {
   listen 80 default_server;
 
@@ -43,6 +51,13 @@ server {
     proxy_set_header        X-Real-IP       $remote_addr;
     proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_intercept_errors on;
+
+    add_header "Cache-Control" $expires;
+    expires $expires;
+    proxy_cache            STATIC;
+    proxy_cache_valid      200  1d;
+    proxy_cache_use_stale  error timeout invalid_header updating http_500 http_502 http_503 http_504;
+
   }
 
   # location = /X0X.html {

@@ -15,44 +15,17 @@ function build {
     SERVICE=$(echo $NAME | cut -d "-" -f 2)
 
     echo "============================================="
-    echo  "["$BUILD_ENV"] ["$SERVICE"] Buidling: "$IMG""
+    echo  "["$SERVICE"] Buidling: "$IMG""
     echo "============================================="
 
-    # case $SERVICE in
-      # "daemon")
-
-      #   ;;
-      # "server")
-
-      #   ;;
-      # *)
-      #   echo "ERROR: don't know what to do with SERVICE: "$SERVICE""
-      #   exit 1
-      #   ;;
-    # esac
-
-    docker build -t $IMG -f docker-builds/$SERVICE/Dockerfile .
+    docker build -t $IMG $SERVICE/
     docker tag $IMG $NAME:latest
-    
-    # case $BUILD_ENV in
-    #   "qa")
-    #     # qa images are tagged as `latest`
-        
-    #     ;;
-    #   "prod")
-    #     # prod images are tagged as `release`
-    #     docker tag $IMG $NAME:release
-    #     ;;
-    #   *)
-    #     echo "ERROR: don't know what to do with BUILD_ENV: "$BUILD_ENV""
-    #     exit 1
-    #     ;;
-    # esac
 
   } || {
     echo "EXCEPTION WHEN BUIDLING "$IMG""
     exit 1
   }
+
 }
 
 function push {
