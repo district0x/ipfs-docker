@@ -7,7 +7,7 @@ RUN apt-get update -y \
 
 # ENV variables
 ENV IPFS_LOGGING ""
-ENV IPFS_VERSION 0.4.18
+ENV IPFS_VERSION 0.4.21
 ENV IPFS_PATH /data/ipfs
 
 # install ipfs
