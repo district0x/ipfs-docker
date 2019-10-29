@@ -29,10 +29,10 @@ RUN chmod a+x /usr/local/bin/start_ipfs
 #EXPOSE 4002/udp
 
 # api
-#EXPOSE 5001
+EXPOSE 5001
 
 # gateway
-#EXPOSE 8080
+EXPOSE 8080
 
 # websocket
 #EXPOSE 8081
