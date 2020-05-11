@@ -3,7 +3,7 @@
 user=$(whoami)
 repo="$IPFS_PATH"
 
-# Test whether the mounted directory is writable for us
+# Test whether the mounted directory is writable
 if [ ! -w "$repo" 2>/dev/null ]; then
   echo "error: $repo is not writable for user $user (uid=$(id -u $user))"
   exit 1
@@ -24,7 +24,6 @@ fi
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST"]'
 
-# For the love of Krishna, do not use `--debug`!
-# You can modify them later, けど. See
+# Do not use `--debug` see
 # https://ipfs.io/docs/commands/#ipfs-log-level
-exec env IPFS_LOGGING=warning ipfs daemon --enable-gc
+exec env IPFS_LOGGING=$IPFS_LOGGING ipfs daemon --enable-gc --enable-pubsub-experiment

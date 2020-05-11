@@ -2,6 +2,7 @@
 
 #--- ARGS
 
+TAG=v0.4.21
 
 #--- FUNCTIONS
 
@@ -9,7 +10,6 @@ function build {
   {
     NAME=$1
     BUILD_ENV=$2
-    TAG=$(git log -1 --pretty=%h)
     IMG=$NAME:$TAG
 
     SERVICE=$(echo $NAME | cut -d "-" -f 2)
@@ -50,7 +50,7 @@ images=(
 for i in "${images[@]}"; do
   (
     build $i
-    push $i
+#    push $i
   )
 
 done # END: i loop
