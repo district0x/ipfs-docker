@@ -1,7 +1,5 @@
 # district0x/ipfs-docker
 
-[![Build Status](https://travis-ci.org/district0x/ipfs-docker.svg?branch=master)](https://travis-ci.org/district0x/ipfs-docker)
-
 Dockerized ipfs. Example of using (with docker-compose):
 
 ```yaml
