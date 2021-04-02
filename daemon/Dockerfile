@@ -1,25 +1,22 @@
-FROM debian:stretch-slim
-MAINTAINER "Filip Bielejec" <filip@district0x.io>
+FROM ubuntu:20.04 as download_ipfs
 
-RUN apt-get update -y \
-    && apt-get install --no-install-recommends -y \
-    -q wget
-
-# ENV variables
-ENV IPFS_LOGGING ""
-ENV IPFS_VERSION 0.4.21
-ENV IPFS_PATH /data/ipfs
-
+ENV IPFS_VERSION 0.4.23
 # install ipfs
-RUN wget --no-check-certificate https://dist.ipfs.io/go-ipfs/v${IPFS_VERSION}/go-ipfs_v${IPFS_VERSION}_linux-amd64.tar.gz
-RUN tar xvfz go-ipfs_v${IPFS_VERSION}_linux-amd64.tar.gz
-WORKDIR go-ipfs
-RUN bash install.sh
+ADD https://dist.ipfs.io/go-ipfs/v${IPFS_VERSION}/go-ipfs_v${IPFS_VERSION}_linux-amd64.tar.gz go-ifs.tar.gz
+RUN tar xvfz go-ifs.tar.gz
+
+
+FROM ubuntu:20.04
+
+ENV IPFS_PATH=/data/ipfs
+ENV IPFS_LOGGING=""
 
 WORKDIR /
 
 # add start_ipfs script
-ADD start_ipfs.sh /usr/local/bin/start_ipfs
+COPY --from=download_ipfs /go-ipfs/ipfs /usr/local/bin/ipfs
+COPY start_ipfs.sh /usr/local/bin/start_ipfs
+
 RUN chmod a+x /usr/local/bin/start_ipfs
 
 # swarm tcp
