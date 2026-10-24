@@ -1,58 +1,59 @@
 #!/bin/bash
+set -euo pipefail
 
 #--- ARGS
 
-TAG=v0.4.23
+# Kubo version the daemon image is built from (also used as the image tag)
+TAG=${TAG:-v0.43.1}
+
+# Target registry, e.g. 123456789012.dkr.ecr.eu-west-1.amazonaws.com/district0x
+# Required for pushing; without it images are only built locally.
+REGISTRY=${REGISTRY:-}
+
+# Set PUSH=1 to push after building
+PUSH=${PUSH:-0}
+
+PLATFORMS=${PLATFORMS:-linux/amd64,linux/arm64}
 
 #--- FUNCTIONS
 
-function build {
-  {
-    NAME=$1
-    BUILD_ENV=$2
-    IMG=$NAME:$TAG
-
-    SERVICE=$(echo $NAME | cut -d "-" -f 2)
-
-    echo "============================================="
-    echo  "["$SERVICE"] Buidling: "$IMG""
-    echo "============================================="
-
-    docker build -t $IMG $SERVICE/
-    docker tag $IMG $NAME:latest
-
-  } || {
-    echo "EXCEPTION WHEN BUIDLING "$IMG""
-    exit 1
-  }
-
-}
-
-function push {
-  NAME=$1
-  echo "Pushing: " $NAME
-  docker push $NAME
-}
-
 function login {
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  # ECR host looks like <account>.dkr.ecr.<region>.amazonaws.com
+  local host=${REGISTRY%%/*}
+  local region
+  region=$(echo "$host" | cut -d "." -f 4)
+  aws ecr get-login-password --region "$region" | docker login --username AWS --password-stdin "$host"
+}
+
+function build {
+  local service=$1
+  local name=ipfs-$service
+  local img=${REGISTRY:+$REGISTRY/}$name
+
+  echo "============================================="
+  echo "[$service] Building: $img:$TAG"
+  echo "============================================="
+
+  local args=(-t "$img:$TAG" -t "$img:latest")
+  if [ "$service" = "daemon" ]; then
+    args+=(--build-arg "KUBO_VERSION=$TAG")
+  fi
+
+  if [ "$PUSH" = "1" ]; then
+    # multi-arch build, pushed straight to the registry
+    docker buildx build --platform "$PLATFORMS" "${args[@]}" --push "$service/"
+  else
+    docker build "${args[@]}" "$service/"
+  fi
 }
 
 #--- EXECUTE
 
-login
+if [ "$PUSH" = "1" ]; then
+  [ -n "$REGISTRY" ] || { echo "REGISTRY must be set when PUSH=1"; exit 1; }
+  login
+fi
 
-images=(
-  district0x/ipfs-daemon
-  district0x/ipfs-server
-)
-
-for i in "${images[@]}"; do
-  (
-    build $i
-#    push $i
-  )
-
-done # END: i loop
-
-exit $?
+for service in daemon server; do
+  build $service
+done
